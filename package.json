@@ -1,0 +1,36 @@
+{
+  "name": "mmex-reports",
+  "version": "1.0.0",
+  "main": "app/main.ts",
+  "scripts": {
+    "start": "tsx app/main.ts",
+    "lint": "eslint"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "type": "module",
+  "devDependencies": {
+    "@eslint/js": "^9.38.0",
+    "@stylistic/eslint-plugin": "^5.5.0",
+    "@types/eslint__js": "^8.42.3",
+    "@types/node": "^24.9.0",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "eslint": "^9.38.0",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-destructuring-newline": "^0.1.1",
+    "eslint-plugin-import-newlines": "^1.4.0",
+    "eslint-plugin-import-x": "^4.16.1",
+    "eslint-plugin-perfectionist": "^4.15.1",
+    "globals": "^16.4.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.2"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.4.1",
+    "cli-table3": "^0.6.5"
+  }
+}

@@ -1,0 +1,1 @@
+personal financial reports using money manager ex sqlite data file

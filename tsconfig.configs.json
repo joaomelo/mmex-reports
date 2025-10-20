@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "noEmit": true,
+    "noImplicitThis": true,
+    "strict": true,
+    "isolatedModules": true,
+    "strictNullChecks": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+  },
+  "include": [
+    "*.config.*",
+    "*.setup.*", 
+    "*.shared.*",
+  ],
+  "exclude": [
+    "node_modules",
+    "./dist",
+  ]  
+}
