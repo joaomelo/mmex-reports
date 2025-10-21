@@ -18,7 +18,7 @@ export function selectDb(filePath: string): {
 
   try {
     const categories = selectCategories(db);
-    const budget = selectBudgetSummaries();
+    const budget = selectBudgetSummaries(db);
     const transactions = selectTransactionsSummaries(db);
 
     return {
@@ -60,63 +60,24 @@ function selectCategories(db: Database): Category[] {
   return rows;
 }
 
-function selectBudgetSummaries(): Summary[] {
-  return [
-    {
-      categoryId: 1,
-      month: 1,
-      total: 110,
-      year: 2023
-    },
-    {
-      categoryId: 2,
-      month: 1,
-      total: -120,
-      year: 2023
-    },
-    {
-      categoryId: 3,
-      month: 1,
-      total: 130,
-      year: 2023
-    },
-    {
-      categoryId: 1,
-      month: 2,
-      total: 110,
-      year: 2023
-    },
-    {
-      categoryId: 2,
-      month: 2,
-      total: -120,
-      year: 2023
-    },
-    {
-      categoryId: 3,
-      month: 2,
-      total: 130,
-      year: 2023
-    },
-    {
-      categoryId: 1,
-      month: 3,
-      total: 110,
-      year: 2023
-    },
-    {
-      categoryId: 2,
-      month: 3,
-      total: -120,
-      year: 2023
-    },
-    {
-      categoryId: 3,
-      month: 3,
-      total: 130,
-      year: 2023
-    },
-  ];
+function selectBudgetSummaries(db: Database): Summary[] {
+  const stmt = db.prepare<[], Summary>(`
+    SELECT
+      bt.CATEGID                               AS categoryId,
+      CAST(SUBSTR(byr.BUDGETYEARNAME, 1, 4) AS INT) AS year,
+      CAST(SUBSTR(byr.BUDGETYEARNAME, 6, 2) AS INT) AS month,
+      ROUND(SUM(bt.AMOUNT), 2)                AS total
+    FROM BUDGETTABLE_V1 bt
+    JOIN BUDGETYEAR_V1  byr ON byr.BUDGETYEARID = bt.BUDGETYEARID
+    WHERE bt.ACTIVE = 1
+      AND byr.BUDGETYEARNAME GLOB '????-??'   -- keep only rows like YYYY-MM
+      AND bt.CATEGID IS NOT NULL
+    GROUP BY bt.CATEGID, year, month
+    ORDER BY year, month, categoryId;
+  `);
+  const rows = stmt.all();
+  return rows;
+
 }
 
 function selectTransactionsSummaries(db: Database): Summary[] {
