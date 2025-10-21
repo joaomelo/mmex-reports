@@ -1,13 +1,13 @@
 import type {
   Category,
-  Summaries
+  Summary
 } from "./domain";
 
 export function selectCategories(): Category[] {
-  const dummyData: Category[] = [
+  return [
     {
       id: 1,
-      name: "Food"
+      name: "Receita"
     },
     {
       id: 2,
@@ -18,11 +18,10 @@ export function selectCategories(): Category[] {
       name: "Entertainment"
     }
   ];
-  return dummyData;
 }
 
-export function selectBudgetSummaries(): Summaries {
-  const dummyData: Summaries = [
+export function selectBudgetSummaries(): Summary[] {
+  return [
     {
       categoryId: 1,
       month: 1,
@@ -32,7 +31,7 @@ export function selectBudgetSummaries(): Summaries {
     {
       categoryId: 2,
       month: 1,
-      total: 120,
+      total: -120,
       year: 2023
     },
     {
@@ -50,7 +49,7 @@ export function selectBudgetSummaries(): Summaries {
     {
       categoryId: 2,
       month: 2,
-      total: 120,
+      total: -120,
       year: 2023
     },
     {
@@ -68,7 +67,7 @@ export function selectBudgetSummaries(): Summaries {
     {
       categoryId: 2,
       month: 3,
-      total: 120,
+      total: -120,
       year: 2023
     },
     {
@@ -78,11 +77,10 @@ export function selectBudgetSummaries(): Summaries {
       year: 2023
     },
   ];
-  return dummyData;
 }
 
-export function selectTransactionsSummaries(): Summaries {
-  const dummyData: Summaries = [
+export function selectTransactionsSummaries(): Summary[] {
+  return [
     {
       categoryId: 1,
       month: 1,
@@ -92,13 +90,13 @@ export function selectTransactionsSummaries(): Summaries {
     {
       categoryId: 2,
       month: 1,
-      total: 550,
+      total: -550,
       year: 2023
     },
     {
       categoryId: 2,
       month: 2,
-      total: 100,
+      total: -100,
       year: 2023
     },
     {
@@ -114,5 +112,4 @@ export function selectTransactionsSummaries(): Summaries {
       year: 2023
     }
   ];
-  return dummyData;
 }

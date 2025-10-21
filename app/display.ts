@@ -5,20 +5,24 @@ import Table from "cli-table3";
 
 import type {
   Category,
-  Period,
-  Summaries
+  Performance,
 } from "./domain";
 
+import {
+  extractSortedPeriods,
+  findCategoryPeriod,
+  formatPeriod,
+  sortCategories
+} from "./utils";
+
 export function display({
-  budget,
-  categories,
-  transactions
+  categories: unsortedCategories,
+  performances
 }: {
-  budget: Summaries;
-  categories: Category[];
-  transactions: Summaries;
+  categories: Category[],
+  performances: Performance[];
 }) {
-  if (transactions.length === 0) {
+  if (performances.length === 0) {
     console.info("no data.");
     return;
   }
@@ -28,13 +32,14 @@ export function display({
   const topLeft: CellOptions = {
     content: "Category",
     hAlign: "center",
-    rowSpan: 2,
+    rowSpan: 3,
     vAlign: "center",
   };
 
-  const periods = extractPeriods(transactions);
+  const periods = extractSortedPeriods(performances);
+
   const periodHeaders: CellOptions[] = periods.map(period => ({
-    colSpan: 2,
+    colSpan: 6,
     content: formatPeriod(period),
     hAlign: "center"
   }));
@@ -42,77 +47,65 @@ export function display({
   const firstRow: CellOptions[] = [topLeft, ...periodHeaders];
   table.push(firstRow);
 
-  const secondRow: CellOptions[] = periods.flatMap(() => [{ content: formatPlanned("planned") }, { content: "actual" }]);
+  const secondRow: CellOptions[] = periods.flatMap(() => [{
+    colSpan: 3,
+    content: "period",
+    hAlign: "center"
+  }, {
+    colSpan: 3,
+    content: "acc",
+    hAlign: "center"
+  }]);
   table.push(secondRow);
 
-  const categoriesNormalized = categories.sort((a, b) => a.name.localeCompare(b.name));
+  const thirdRow: CellOptions[] = periods.flatMap(() => [
+    { content: "planned" },
+    { content: "actual" },
+    { content: "difference" },
+    { content: "planned" },
+    { content: "actual" },
+    { content: "difference" },
+  ]);
+  table.push(thirdRow);
 
-  categoriesNormalized.forEach((category) => {
+  const categories = sortCategories(unsortedCategories);
+
+  categories.forEach((category) => {
     const {
       id: categoryId,
       name: categoryName
     } = category;
 
-    const values = periods.flatMap((period) => {
-
-      const budgetValue = resolveValue({
+    const categoryValues = periods.flatMap((period) => {
+      const performance = findCategoryPeriod({
         categoryId,
-        period,
-        summaries: budget
+        data: performances,
+        month: period.month,
+        year: period.year
       });
+      if (!performance) throw new Error("performance not found");
 
-      const transactionsValue = resolveValue({
-        categoryId,
-        period,
-        summaries: transactions
-      });
-
-      return [formatPlanned(budgetValue), transactionsValue];
+      const periodValues = [ performance.planned, performance.actual, performance.difference,
+        performance.plannedAcc, performance.actualAcc, performance.differenceAcc
+      ];
+      return periodValues.map(formatValueCell);
     });
 
-    table.push([categoryName, ...values]);
+    table.push([categoryName, ...categoryValues]);
   });
 
   console.info(table.toString());
 }
 
-function resolveValue({
-  categoryId,
-  period,
-  summaries
-}: {
-  categoryId: number;
-  period: Period;
-  summaries: Summaries;
-}): string {
-  const summary = summaries.find(s => s.categoryId === categoryId
-      && s.month === period.month
-      && s.year === period.year
-  );
-  const value = summary ? summary.total : 0;
-  return value.toFixed(2);
-}
-
-function formatPlanned(content: number | string): string {
-  return chalk.cyan(content);
-}
-
-function extractPeriods(summaries: Summaries): Period[] {
-  const map = new Map<string, Period>();
-  summaries.forEach(summary => {
-    const key = formatPeriod(summary);
-    map.set(key, {
-      month: summary.month,
-      year: summary.year
-    });
-  });
-
-  return Array.from(map.values())
-    .sort((a, b) =>
-      a.year === b.year ? b.month - a.month : b.year - a.year
-    );
-};
-
-function formatPeriod(period: Period): string {
-  return `${period.year.toFixed(0)}-${String(period.month).padStart(2, "0")}`;
+function formatValueCell(value: number): CellOptions {
+  const rawContent = value.toFixed(2);
+  const content = value === 0
+    ? rawContent
+    : value > 0
+      ? chalk.cyan(rawContent)
+      : chalk.red(rawContent);
+  return {
+    content: content,
+    hAlign: "right"
+  };
 }
