@@ -1,15 +1,20 @@
+import type { CellOptions } from "cli-table3";
+
+import chalk from "chalk";
 import Table from "cli-table3";
 
 import type {
   Category,
   Period,
-  Summaries,
+  Summaries
 } from "./domain";
 
 export function display({
+  budget,
   categories,
   transactions
 }: {
+  budget: Summaries;
   categories: Category[];
   transactions: Summaries;
 }) {
@@ -18,28 +23,78 @@ export function display({
     return;
   }
 
-  const categoriesNormalized = categories.sort((a, b) => a.name.localeCompare(b.name));
-  const periods = extractPeriods(transactions);
+  const table = new Table({ });
 
-  const table = new Table({ head: ["Category", ...periods.map(formatPeriod)] });
+  const topLeft: CellOptions = {
+    content: "Category",
+    hAlign: "center",
+    rowSpan: 2,
+    vAlign: "center",
+  };
+
+  const periods = extractPeriods(transactions);
+  const periodHeaders: CellOptions[] = periods.map(period => ({
+    colSpan: 2,
+    content: formatPeriod(period),
+    hAlign: "center"
+  }));
+
+  const firstRow: CellOptions[] = [topLeft, ...periodHeaders];
+  table.push(firstRow);
+
+  const secondRow: CellOptions[] = periods.flatMap(() => [{ content: formatPlanned("planned") }, { content: "actual" }]);
+  table.push(secondRow);
+
+  const categoriesNormalized = categories.sort((a, b) => a.name.localeCompare(b.name));
 
   categoriesNormalized.forEach((category) => {
     const {
-      id,
-      name
+      id: categoryId,
+      name: categoryName
     } = category;
-    const values = periods.map((period) => {
-      const summary = transactions.find(s => s.categoryId === id
-          && s.month === period.month
-          && s.year === period.year
-      );
-      const value = summary ? summary.total : 0;
-      return value.toFixed(2);
+
+    const values = periods.flatMap((period) => {
+
+      const budgetValue = resolveValue({
+        categoryId,
+        period,
+        summaries: budget
+      });
+
+      const transactionsValue = resolveValue({
+        categoryId,
+        period,
+        summaries: transactions
+      });
+
+      return [formatPlanned(budgetValue), transactionsValue];
     });
-    table.push([name, ...values]);
+
+    table.push([categoryName, ...values]);
   });
 
   console.info(table.toString());
+}
+
+function resolveValue({
+  categoryId,
+  period,
+  summaries
+}: {
+  categoryId: number;
+  period: Period;
+  summaries: Summaries;
+}): string {
+  const summary = summaries.find(s => s.categoryId === categoryId
+      && s.month === period.month
+      && s.year === period.year
+  );
+  const value = summary ? summary.total : 0;
+  return value.toFixed(2);
+}
+
+function formatPlanned(content: number | string): string {
+  return chalk.cyan(content);
 }
 
 function extractPeriods(summaries: Summaries): Period[] {
