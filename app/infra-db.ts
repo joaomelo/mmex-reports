@@ -63,17 +63,16 @@ function selectCategories(db: Database): Category[] {
 function selectBudgetSummaries(db: Database): Summary[] {
   const stmt = db.prepare<[], Summary>(`
     SELECT
-      bt.CATEGID                               AS categoryId,
+      bt.CATEGID AS categoryId,
       CAST(SUBSTR(byr.BUDGETYEARNAME, 1, 4) AS INT) AS year,
       CAST(SUBSTR(byr.BUDGETYEARNAME, 6, 2) AS INT) AS month,
-      ROUND(SUM(bt.AMOUNT), 2)                AS total
+      ROUND(SUM(bt.AMOUNT), 2) AS total
     FROM BUDGETTABLE_V1 bt
-    JOIN BUDGETYEAR_V1  byr ON byr.BUDGETYEARID = bt.BUDGETYEARID
+    JOIN BUDGETYEAR_V1 byr ON byr.BUDGETYEARID = bt.BUDGETYEARID
     WHERE bt.ACTIVE = 1
-      AND byr.BUDGETYEARNAME GLOB '????-??'   -- keep only rows like YYYY-MM
+      AND byr.BUDGETYEARNAME GLOB '????-??' -- keep only rows like YYYY-MM
       AND bt.CATEGID IS NOT NULL
-    GROUP BY bt.CATEGID, year, month
-    ORDER BY year, month, categoryId;
+    GROUP BY bt.CATEGID, year, month;
   `);
   const rows = stmt.all();
   return rows;
@@ -127,8 +126,7 @@ function selectTransactionsSummaries(db: Database): Summary[] {
       SELECT * FROM split_rows
     )
     WHERE categoryId IS NOT NULL
-    GROUP BY categoryId, year, month
-    ORDER BY year, month, categoryId;
+    GROUP BY categoryId, year, month;
   `);
   const rows = stmt.all();
   return rows;
