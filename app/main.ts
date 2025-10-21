@@ -1,17 +1,15 @@
 import { display } from "./display";
-import {
-  selectBudgetSummaries,
-  selectCategories,
-  selectTransactionsSummaries
-} from "./infra-db-mock";
+import { selectDb } from "./infra-db";
 import { selectInputs } from "./infra-prompt";
 import { mountPerformance } from "./services";
 
 const inputs = await selectInputs();
 
-const categories = selectCategories();
-const transactions = selectTransactionsSummaries();
-const budget = selectBudgetSummaries();
+const {
+  budget,
+  categories,
+  transactions
+} = selectDb(inputs.filePath);
 
 const performances = mountPerformance({
   budget,
@@ -23,5 +21,6 @@ const performances = mountPerformance({
 
 display({
   categories,
+  hideAcc: inputs.hideAcc,
   performances
 });

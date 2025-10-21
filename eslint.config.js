@@ -130,11 +130,11 @@ export default defineConfig(
   // language settings
   {
     // this line tells eslint to link the typescript service with all file types used by the project
-    files: ["**/*.ts", "**/*.js"],
+    files: ["**/*.ts"],
     languageOptions: {
       globals: { ...globals.node },
+      parser: tseslint.parser,
       parserOptions: {
-        parser: "@typescript-eslint/parser",
         project: [resolve(import.meta.dirname, "./tsconfig.json")],
         projectService: true,
         sourceType: "module",

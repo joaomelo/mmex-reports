@@ -13,11 +13,13 @@ import {
 export async function selectInputs(): Promise<{
   delta: number;
   filePath: string;
+  hideAcc: boolean;
   start: Period;
 }> {
   const answers = await inquirer.prompt<{
     deltaRaw: string;
     fileRaw: string;
+    hideAcc: boolean;
     startRaw: string;
   }>([
     {
@@ -39,7 +41,13 @@ export async function selectInputs(): Promise<{
       },
     },
     {
-      default: "mock",
+      default: false,
+      message: "Hide accumulated data?",
+      name: "hideAcc",
+      type: "confirm",
+    },
+    {
+      default: "mock.mmb",
       filter: (v) => path.resolve(String(v).trim()),
       message: "Path to your data file",
       name: "fileRaw",
@@ -50,11 +58,13 @@ export async function selectInputs(): Promise<{
 
   const start = parsePeriodString(answers.startRaw) ?? todayPeriod();
   const delta = Number(answers.deltaRaw);
+  const { hideAcc } = answers;
   const filePath = answers.fileRaw;
 
   return {
     delta,
     filePath,
+    hideAcc,
     start
   };
 }
@@ -65,8 +75,6 @@ function defaultStartString(): string {
 }
 
 function validateExistingFile(p: string): string | true {
-  if (p === "mock") return true;
-
   try {
     const full = path.resolve(p);
     const stat = fs.statSync(full);
