@@ -58,7 +58,7 @@ export default defineConfig(
     "import-x/newline-after-import": "error",
     "import-x/no-dynamic-require": "error",
     "import-x/no-named-as-default": "off",
-    "import-x/no-nodejs-modules": "error"
+    "import-x/no-nodejs-modules": "off"
   } },
 
   {

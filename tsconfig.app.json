@@ -8,12 +8,7 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "preserveSymlinks": false,    
-    "jsxImportSource": "vue",
-    "lib": [
-      "DOM",
-      "DOM.Iterable",
-      "ESNext"
-    ],
+    "types": ["node"],    
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "noEmit": true,
@@ -28,13 +23,10 @@
     "strict": true,
     "target": "ESNext",
     "useDefineForClassFields": true,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
   },
   "exclude": [
     "node_modules",
-    "./dist",
-    "./e2e",
-    "app/main/dev-dist"
   ],
   "include": [
     "./app/**/*",
