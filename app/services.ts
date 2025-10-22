@@ -6,9 +6,9 @@ import type {
 } from "./domain";
 
 import {
+  calculateDeltaPeriod,
   extractSortedPeriods,
   isPeriodBetween,
-  movePeriod,
   resolveSummaryValue,
 } from "./utils";
 
@@ -22,28 +22,29 @@ export function mountPerformance({
   budget,
   categories,
   delta,
-  start,
+  referencePeriod,
   transactions
 }: {
   budget: Summary[];
   categories: Category[];
   delta: number;
-  start: Period;
+  referencePeriod: Period;
   transactions: Summary[];
 }): Performance[] {
 
   const performances: Performance[] = [];
   const categoriesAccumulated = new Map<number, CategoryAccumulated>();
 
-  const end = movePeriod(start, delta);
+  const deltaPeriod = calculateDeltaPeriod(referencePeriod, delta);
+
   const categoriesIds = categories.map(({ id }) => id);
   const periods = extractSortedPeriods([...budget, ...transactions]);
 
   periods.forEach((period) => {
     const isBetween = isPeriodBetween({
-      end,
+      end: delta >= 0 ? deltaPeriod : referencePeriod,
       period,
-      start
+      start: delta >= 0 ? referencePeriod : deltaPeriod
     });
     if (!isBetween) return;
 

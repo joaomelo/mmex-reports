@@ -15,7 +15,7 @@ const performances = mountPerformance({
   budget,
   categories,
   delta: inputs.delta,
-  start: inputs.start,
+  referencePeriod: inputs.period,
   transactions
 });
 

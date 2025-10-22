@@ -17,6 +17,7 @@ export function isPeriodBetween({
   const startDate = periodToDate(start);
   const endDate = periodToDate(end);
   const periodDate = periodToDate(period);
+
   return periodDate >= startDate && periodDate <= endDate;
 }
 
@@ -116,7 +117,7 @@ export function dateToPeriod(date: Date): Period {
   };
 }
 
-export function movePeriod(period: Period, delta: number): Period {
+export function calculateDeltaPeriod(period: Period, delta: number): Period {
   const date = periodToDate(period);
   date.setMonth(date.getMonth() + delta);
   return dateToPeriod(date);

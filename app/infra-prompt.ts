@@ -21,7 +21,7 @@ export async function selectInputs(): Promise<{
   columns: PerformanceMetric[];
   delta: number;
   filePath: string;
-  start: Period;
+  period: Period;
 }> {
   const answers = await inquirer.prompt<{
     columns: PerformanceMetric[];
@@ -29,12 +29,12 @@ export async function selectInputs(): Promise<{
     deltaRaw: string;
     fileRaw: string;
     hideAcc: boolean;
-    startRaw: string;
+    periodRaw: string;
   }>([
     {
-      default: defaultStartString(),
-      message: "Start period (YYYY-MM)",
-      name: "startRaw",
+      default: defaultPeriodString(),
+      message: "Period (YYYY-MM)",
+      name: "periodRaw",
       type: "input",
       validate: (v) => (stringToPeriod(v) ? true : "Use YYYY-MM (e.g. 2025-01)"),
     },
@@ -122,7 +122,7 @@ export async function selectInputs(): Promise<{
     },
   ]);
 
-  const start = stringToPeriod(answers.startRaw) ?? todayPeriod();
+  const period = stringToPeriod(answers.periodRaw) ?? todayPeriod();
   const delta = Number(answers.deltaRaw);
   const filePath = answers.fileRaw;
 
@@ -135,11 +135,11 @@ export async function selectInputs(): Promise<{
     columns,
     delta,
     filePath,
-    start
+    period
   };
 }
 
-function defaultStartString(): string {
+function defaultPeriodString(): string {
   const defaultPeriod = todayPeriod();
   return periodToString(defaultPeriod);
 }
