@@ -8,8 +8,15 @@ import type {
 import {
   extractSortedPeriods,
   isPeriodBetween,
+  movePeriod,
   resolveSummaryValue,
 } from "./utils";
+
+interface CategoryAccumulated {
+  actual: number;
+  difference: number;
+  planned: number;
+}
 
 export function mountPerformance({
   budget,
@@ -25,16 +32,13 @@ export function mountPerformance({
   transactions: Summary[];
 }): Performance[] {
 
-  const end = solveEnd(start, delta);
-
   const performances: Performance[] = [];
+  const categoriesAccumulated = new Map<number, CategoryAccumulated>();
 
+  const end = movePeriod(start, delta);
   const categoriesIds = categories.map(({ id }) => id);
   const periods = extractSortedPeriods([...budget, ...transactions]);
 
-  let plannedAcc = 0;
-  let actualAcc = 0;
-  let differenceAcc = 0;
   periods.forEach((period) => {
     const isBetween = isPeriodBetween({
       end,
@@ -55,31 +59,34 @@ export function mountPerformance({
         summaries: budget
       });
       const difference = actual - planned;
-      actualAcc += actual;
-      plannedAcc += planned;
-      differenceAcc += difference;
+
+      if (!categoriesAccumulated.has(categoryId)) {
+        categoriesAccumulated.set(categoryId, {
+          actual: 0,
+          difference: 0,
+          planned: 0
+        });
+      }
+      const categoryAccumulated = categoriesAccumulated.get(categoryId);
+      if (!categoryAccumulated) throw new Error("Category state is required");
+
+      categoryAccumulated.actual += actual;
+      categoryAccumulated.planned += planned;
+      categoryAccumulated.difference += difference;
+
       const performance: Performance = {
         actual,
-        actualAcc,
+        actualAcc: categoryAccumulated.actual,
         categoryId,
         difference,
-        differenceAcc,
+        differenceAcc: categoryAccumulated.difference,
         month: period.month,
         planned,
-        plannedAcc,
+        plannedAcc: categoryAccumulated.planned,
         year: period.year
       };
       performances.push(performance);
     });
   });
   return performances;
-}
-
-function solveEnd(start: Period, delta: number): Period {
-  const end = new Date(start.year, start.month - 1);
-  end.setMonth(end.getMonth() + 1 + delta);
-  return {
-    month: end.getMonth(),
-    year: end.getFullYear()
-  };
 }

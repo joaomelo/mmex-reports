@@ -11,7 +11,7 @@ import type {
 import {
   extractSortedPeriods,
   findCategoryPeriod,
-  formatPeriod,
+  periodToString,
   sortCategories
 } from "./utils";
 
@@ -43,7 +43,7 @@ export function display({
   const periodSpan = hideAcc ? 3 : 6;
   const periodHeaders: CellOptions[] = periods.map(period => ({
     colSpan: periodSpan,
-    content: formatPeriod(period),
+    content: periodToString(period),
     hAlign: "center"
   }));
 

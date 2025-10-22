@@ -14,9 +14,9 @@ export function isPeriodBetween({
   period: Period;
   start: Period;
 }): boolean {
-  const startDate = new Date(start.year, start.month - 1);
-  const endDate = new Date(end.year, end.month - 1);
-  const periodDate = new Date(period.year, period.month - 1);
+  const startDate = periodToDate(start);
+  const endDate = periodToDate(end);
+  const periodDate = periodToDate(period);
   return periodDate >= startDate && periodDate <= endDate;
 }
 
@@ -55,11 +55,15 @@ export function resolveSummaryValue({
   return summary ? summary.total : 0;
 }
 
+export function sortCategories(categories: Category[]): Category[] {
+  return categories.sort((a, b) => a.name.localeCompare(b.name));
+}
+
 export function extractSortedPeriods(periods: Period[]): Period[] {
   const map = new Map<string, Period>();
 
   periods.forEach(period => {
-    const key = formatPeriod(period);
+    const key = periodToString(period);
     if (map.has(key)) return;
     map.set(key, {
       month: period.month,
@@ -73,17 +77,7 @@ export function extractSortedPeriods(periods: Period[]): Period[] {
     );
 };
 
-export function todayPeriod(): Period {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
-  return {
-    month,
-    year
-  };
-}
-
-export function parsePeriodString(value: string): Period | undefined {
+export function stringToPeriod(value: string): Period | undefined {
   const m = /^(\d{4})-(\d{2})$/.exec(value.trim());
   if (!m) return undefined;
 
@@ -97,10 +91,33 @@ export function parsePeriodString(value: string): Period | undefined {
   };
 }
 
-export function formatPeriod(period: Period): string {
+export function periodToString(period: Period): string {
   return `${period.year.toFixed(0)}-${String(period.month).padStart(2, "0")}`;
 }
 
-export function sortCategories(categories: Category[]): Category[] {
-  return categories.sort((a, b) => a.name.localeCompare(b.name));
+export function todayPeriod(): Period {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  return {
+    month,
+    year
+  };
+}
+
+export function periodToDate(period: Period): Date {
+  return new Date(period.year, period.month - 1);
+}
+
+export function dateToPeriod(date: Date): Period {
+  return {
+    month: date.getMonth() + 1,
+    year: date.getFullYear()
+  };
+}
+
+export function movePeriod(period: Period, delta: number): Period {
+  const date = periodToDate(period);
+  date.setMonth(date.getMonth() + delta);
+  return dateToPeriod(date);
 }

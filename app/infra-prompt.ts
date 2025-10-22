@@ -5,8 +5,8 @@ import path from "node:path";
 import type { Period } from "./domain";
 
 import {
-  formatPeriod,
-  parsePeriodString,
+  periodToString,
+  stringToPeriod,
   todayPeriod
 } from "./utils";
 
@@ -27,7 +27,7 @@ export async function selectInputs(): Promise<{
       message: "Start period (YYYY-MM)",
       name: "startRaw",
       type: "input",
-      validate: (v) => (parsePeriodString(v) ? true : "Use YYYY-MM (e.g. 2025-01)"),
+      validate: (v) => (stringToPeriod(v) ? true : "Use YYYY-MM (e.g. 2025-01)"),
     },
     {
       default: "0",
@@ -56,7 +56,7 @@ export async function selectInputs(): Promise<{
     },
   ]);
 
-  const start = parsePeriodString(answers.startRaw) ?? todayPeriod();
+  const start = stringToPeriod(answers.startRaw) ?? todayPeriod();
   const delta = Number(answers.deltaRaw);
   const { hideAcc } = answers;
   const filePath = answers.fileRaw;
@@ -71,7 +71,7 @@ export async function selectInputs(): Promise<{
 
 function defaultStartString(): string {
   const defaultPeriod = todayPeriod();
-  return formatPeriod(defaultPeriod);
+  return periodToString(defaultPeriod);
 }
 
 function validateExistingFile(p: string): string | true {
