@@ -21,6 +21,6 @@ const performances = mountPerformance({
 
 display({
   categories,
-  hideAcc: inputs.hideAcc,
+  displayMetrics: inputs.columns,
   performances
 });

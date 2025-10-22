@@ -6,8 +6,14 @@ import Table from "cli-table3";
 import type {
   Category,
   Performance,
+  PerformanceMetric
 } from "./domain";
 
+import {
+  performanceAccumulatedMetrics,
+  performanceBaseMetrics,
+  performanceMetrics
+} from "./domain";
 import {
   extractSortedPeriods,
   findCategoryPeriod,
@@ -17,11 +23,11 @@ import {
 
 export function display({
   categories: unsortedCategories,
-  hideAcc,
+  displayMetrics,
   performances
 }: {
   categories: Category[],
-  hideAcc?: boolean,
+  displayMetrics: PerformanceMetric[],
   performances: Performance[];
 }) {
   if (performances.length === 0) {
@@ -40,7 +46,7 @@ export function display({
 
   const periods = extractSortedPeriods(performances);
 
-  const periodSpan = hideAcc ? 3 : 6;
+  const periodSpan = displayMetrics.length;
   const periodHeaders: CellOptions[] = periods.map(period => ({
     colSpan: periodSpan,
     content: periodToString(period),
@@ -51,30 +57,48 @@ export function display({
   table.push(firstRow);
 
   const secondRow: CellOptions[] = [];
+
+  const displayBaseMetrics = performanceBaseMetrics
+    .filter(metric => displayMetrics.includes(metric));
+  const displayAccumulatedMetrics = performanceAccumulatedMetrics
+    .filter(metric => displayMetrics.includes(metric));
+  const metricsGroups = [{
+    label: "period",
+    metrics: displayBaseMetrics
+  }, {
+    label: "acc",
+    metrics: displayAccumulatedMetrics
+  }] as const;
+
   periods.forEach(() => {
-    secondRow.push({
-      colSpan: 3,
-      content: "period",
-      hAlign: "center"
-    });
-    if (hideAcc) return;
-    secondRow.push({
-      colSpan: 3,
-      content: "acc",
-      hAlign: "center"
+    metricsGroups.forEach((group) => {
+      if (group.metrics.length === 0) return;
+      secondRow.push({
+        colSpan: group.metrics.length,
+        content: group.label,
+        hAlign: "center"
+      });
     });
   });
   table.push(secondRow);
 
   const thirdRow: CellOptions[] = [];
+
+  const metricsLabels = {
+    actual: "actual",
+    actualAcc: "actual",
+    difference: "diff",
+    differenceAcc: "diff",
+    planned: "planned",
+    plannedAcc: "planned"
+  } as const;
+
   periods.forEach(() => {
-    thirdRow.push({ content: "planned" });
-    thirdRow.push({ content: "actual" });
-    thirdRow.push({ content: "diff" });
-    if (hideAcc) return;
-    thirdRow.push({ content: "planned" });
-    thirdRow.push({ content: "actual" });
-    thirdRow.push({ content: "diff" });
+    // we use performance instead of display in the loop to preserve order
+    performanceMetrics.forEach((metric) => {
+      if (!displayMetrics.includes(metric)) return;
+      thirdRow.push({ content: metricsLabels[metric] });
+    });
   });
   table.push(thirdRow);
 
@@ -95,10 +119,12 @@ export function display({
       });
       if (!performance) throw new Error("performance not found");
 
-      const periodValues = [ performance.planned, performance.actual, performance.difference ];
-      if (!hideAcc) {
-        periodValues.push(performance.plannedAcc, performance.actualAcc, performance.differenceAcc);
-      }
+      const periodValues: number[] = [];
+      // we use performance instead of display in the loop to preserve order
+      performanceMetrics.forEach((metric) => {
+        if (!displayMetrics.includes(metric)) return;
+        periodValues.push(performance[metric]);
+      });
       return periodValues.map(formatValueCell);
     });
 

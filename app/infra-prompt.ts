@@ -2,21 +2,30 @@ import inquirer from "inquirer";
 import fs from "node:fs";
 import path from "node:path";
 
-import type { Period } from "./domain";
+import type {
+  PerformanceMetric,
+  Period
+} from "./domain";
 
+import { performanceMetrics } from "./domain";
 import {
   periodToString,
   stringToPeriod,
   todayPeriod
 } from "./utils";
 
+const BASE_COLS: PerformanceMetric[] = ["planned", "actual", "difference"] as const;
+const ALL_COLS = performanceMetrics;
+
 export async function selectInputs(): Promise<{
+  columns: PerformanceMetric[];
   delta: number;
   filePath: string;
-  hideAcc: boolean;
   start: Period;
 }> {
   const answers = await inquirer.prompt<{
+    columns: PerformanceMetric[];
+    columnsPreset: "__custom__" | PerformanceMetric[];
     deltaRaw: string;
     fileRaw: string;
     hideAcc: boolean;
@@ -41,10 +50,67 @@ export async function selectInputs(): Promise<{
       },
     },
     {
-      default: false,
-      message: "Hide accumulated data?",
-      name: "hideAcc",
-      type: "confirm",
+      choices: [
+        {
+          name: "Everything (all 6)",
+          value: ALL_COLS
+        },
+        {
+          name: "Only monthly (no accumulated)",
+          value: BASE_COLS
+        },
+        {
+          name: "Customize (start with monthly)",
+          value: "__custom__" as const
+        },
+      ],
+      default: ALL_COLS,
+      message: "Columns preset",
+      name: "columnsPreset",
+      type: "list",
+    },
+    {
+      choices: [
+        new inquirer.Separator("— Monthly —"),
+        {
+          name: "Planned",
+          short: "plan",
+          value: "planned"
+        },
+        {
+          name: "Actual",
+          short: "act",
+          value: "actual"
+        },
+        {
+          name: "Diff (Actual - Planned)",
+          short: "Δ",
+          value: "difference"
+        },
+        new inquirer.Separator("— Accumulated —"),
+        {
+          name: "Acc Planned",
+          short: "acc plan",
+          value: "plannedAcc"
+        },
+        {
+          name: "Acc Actual",
+          short: "acc act",
+          value: "actualAcc"
+        },
+        {
+          name: "Acc Diff",
+          short: "acc Δ",
+          value: "differenceAcc"
+        },
+      ],
+      default: BASE_COLS,
+      loop: false,
+      message: "Which columns to show? (Space/A/I)",
+      name: "columns",
+      pageSize: 10,
+      type: "checkbox",
+      when: (ans) => ans.columnsPreset === "__custom__",
     },
     {
       default: "mock.mmb",
@@ -58,13 +124,17 @@ export async function selectInputs(): Promise<{
 
   const start = stringToPeriod(answers.startRaw) ?? todayPeriod();
   const delta = Number(answers.deltaRaw);
-  const { hideAcc } = answers;
   const filePath = answers.fileRaw;
 
+  const preset = answers.columnsPreset;
+  const columns: PerformanceMetric[] = Array.isArray(preset)
+    ? preset
+    : answers.columns;
+
   return {
+    columns,
     delta,
     filePath,
-    hideAcc,
     start
   };
 }
